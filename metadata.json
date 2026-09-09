@@ -1,0 +1,6 @@
+{
+  "name": "Jobless Empire Discord Bot",
+  "description": "Unified production Discord bot ecosystem for Jobless Empire (JEMP / despair.us) with smart auto-verification, proof-of-work timeline, brainstorming, projects, payroll transparency, and Docker deployment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

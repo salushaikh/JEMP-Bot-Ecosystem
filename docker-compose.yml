@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # ==============================================================================
+  # CANONICAL POSTGRESQL DATABASE
+  # ==============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: jemp_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jemp_db
+      POSTGRES_USER: jemp_user
+      POSTGRES_PASSWORD: jemp_secure_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - jemp_pgdata:/var/lib/postgresql/data
+      - ./src/db/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jemp_user -d jemp_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # UNIFIED JEMP PRODUCTION BOT & ECOSYSTEM
+  # ==============================================================================
+  jemp-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jemp_discord_bot
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://jemp_user:jemp_secure_password_2026@postgres:5432/jemp_db
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+      - ADMIN_ROLE_ID=${ADMIN_ROLE_ID}
+      - MEMBER_ROLE_ID=${MEMBER_ROLE_ID}
+      - UNVERIFIED_ROLE_ID=${UNVERIFIED_ROLE_ID}
+      - VERIFY_CHANNEL_ID=${VERIFY_CHANNEL_ID}
+      - ONBOARDING_LOGS_CHANNEL_ID=${ONBOARDING_LOGS_CHANNEL_ID}
+      - BOT_LOGS_CHANNEL_ID=${BOT_LOGS_CHANNEL_ID}
+      - PROFILE_MANAGER_CHANNEL_ID=${PROFILE_MANAGER_CHANNEL_ID}
+      - BRAINSTORMS_CHANNEL_ID=${BRAINSTORMS_CHANNEL_ID}
+      - PROJECTS_CHANNEL_ID=${PROJECTS_CHANNEL_ID}
+      - OPPORTUNITIES_CHANNEL_ID=${OPPORTUNITIES_CHANNEL_ID}
+      - PAYROLL_CHANNEL_ID=${PAYROLL_CHANNEL_ID}
+      - APP_URL=https://despair.us
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  jemp_pgdata:
+    driver: local
